@@ -1,0 +1,66 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Read(//c/Users/haris/**)",
+      "Read(//c/Users/haris/Pictures/**)",
+      "Read(//c/Users/haris/Desktop/**)",
+      "Bash(npm test:*)",
+      "Bash(find C:/Users/haris/.claude -type f -name *.md)",
+      "Bash(find C:/Users/haris/code/git-practice/.claude -type f -name *.md)",
+      "Skill(update-config)",
+      "mcp__playwright",
+      "Bash(gh auth:*)",
+      "Bash(git config:*)",
+      "Bash(cp:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(node:*)",
+      "Bash(python:*)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"--- TS exit: $?\")",
+      "Bash(echo \"--- PY exit: $?\")",
+      "Bash(echo \"--- GO exit: $?\")",
+      "Bash(echo \"--- CSS exit: $?\")"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/block_env_read.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "agent",
+            "prompt": "You are a duplicate-detection agent for an e-commerce query project at queries/src/queries/. A new file is about to be created:\n\n$ARGUMENTS\n\nYour job:\n1. Read the 'content' field from the tool input to understand what queries/functions are being created.\n2. Search the existing files in queries/src/queries/ for any functions that do similar things — look at function names, SQL queries, parameters, and return types.\n3. If you find overlapping or duplicate functionality, output JSON with this exact format:\n{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"WARNING: Similar functionality already exists. [describe what you found and where]. Consider extending the existing file instead of creating a new one.\"}}\n4. If the file is NOT being created inside queries/src/queries/, or if no duplicates are found, output nothing.",
+            "timeout": 45,
+            "statusMessage": "Checking for duplicate query functionality..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/lang_check.py",
+            "timeout": 60,
+            "statusMessage": "Running language checker..."
+          }
+        ]
+      }
+    ]
+  }
+}
